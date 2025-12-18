@@ -1,0 +1,28 @@
+#Outliers using Z-Score
+
+import pandas as pd
+import numpy as np
+# Sample DataFrame
+field = 'Monthly Debt'
+# Calculate Z-scores
+data['Z-Score'] = (data[field] - data[field].mean()) / data[field].std()
+# Identify outliers
+outliers = data[np.abs(data['Z-Score']) > 3]
+# Remove outliers
+data_no_outliers = data[np.abs(data['Z-Score']) <= 3]
+print("Outliers:\n", outliers)
+print("\nData without outliers:\n", data_no_outliers)
+
+# Outliers using IQR
+
+field = 'Monthly Debt'
+Q1 = data[field].quantile(0.25)
+Q3 = data[field].quantile(0.75)
+IQR = Q3 - Q1
+# Identify outliers
+outliers = data[(data[field] < (Q1 - 1.5 * IQR)) | (data[field] > (Q3 + 1.5 * IQR))]
+# Remove outliers
+data_no_outliers = data[(data[field] >= (Q1 - 1.5 * IQR)) & (data[field] <= (Q3 + 1.5 * IQR))]
+
+print("Outliers:\n", outliers)
+print("\nData without outliers:\n", data_no_outliers)

@@ -1,0 +1,7 @@
+from fastapi import FastAPI
+from transformers import pipeline
+app = FastAPI()
+generator = pipeline("text-generation", model="finetuned-model")
+@app.post("/generate")
+def generate_text(prompt: str):
+    return generator(prompt, max_length=200)

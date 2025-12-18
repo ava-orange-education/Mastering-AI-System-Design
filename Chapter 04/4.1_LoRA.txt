@@ -1,0 +1,16 @@
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import LoraConfig, get_peft_model
+
+
+model_name = "meta-llama/Llama-2-7b-hf"
+# Finding the tokenizer
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+# Creating configuration for LoRA.
+config = LoraConfig(
+    r=8, //Rank
+    lora_alpha=16,
+    target_modules=["q_proj", "v_proj"],
+    lora_dropout=0.05 
+)
+model = get_peft_model(model, config)

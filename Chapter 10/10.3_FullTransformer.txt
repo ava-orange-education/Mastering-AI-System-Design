@@ -1,0 +1,29 @@
+class Transformer(nn.Module):
+    def __init__(self, vocab, d_model=768, n_layers=12,
+                 n_heads=12, d_ff=3072, max_len=1024, tied_embeddings=True):
+        super().__init__()
+        self.token_emb = nn.Embedding(vocab, d_model)
+        self.pos_emb   = nn.Embedding(max_len, d_model)
+        self.encoder = nn.ModuleList([EncoderLayer(d_model, n_heads, d_ff)
+                                       for _ in range(n_layers)])
+        self.decoder = nn.ModuleList([DecoderLayer(d_model, n_heads, d_ff)
+                                       for _ in range(n_layers)])
+        self.lm_head = nn.Linear(d_model, vocab, bias=False)
+        if tied_embeddings:
+            self.lm_head.weight = self.token_emb.weight  # weight tying
+
+    def _add_pos(self, x):
+        B, T = x.size()
+        pos = torch.arange(T, device=x.device).unsqueeze(0)
+        return self.token_emb(x) + self.pos_emb(pos)
+
+    def forward(self, src_ids, tgt_ids, src_mask=None, tgt_mask=None):
+        enc = self._add_pos(src_ids)
+        for layer in self.encoder:
+            enc = layer(enc, mask=src_mask)
+
+        dec = self._add_pos(tgt_ids)
+        for layer in self.decoder:
+            dec = layer(dec, enc, src_mask, tgt_mask)
+
+        return self.lm_head(dec)          # logits

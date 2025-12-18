@@ -1,0 +1,51 @@
+Here is small code-snippet for RAG implementation using langchain library.
+
+pip install langchain faiss-cpu openai
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
+from langchain.chains import RetrievalQA
+from langchain.llms import OpenAI
+
+
+# -----------------------
+# Sample documents
+# -----------------------
+documents = [
+    "Paris is the capital of France.",
+    "The Eiffel Tower is located in Paris.",
+    "London is the capital of the UK.",
+    "Big Ben is a famous landmark in London."
+]
+# -----------------------
+# Step 1: Create embeddings for documents
+# -----------------------
+embeddings = OpenAIEmbeddings()  # Make sure OPENAI_API_KEY is set
+vector_store = FAISS.from_texts(documents, embeddings)
+
+
+# -----------------------
+# Step 2: Create a retriever
+# -----------------------
+retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k":2})
+
+
+# -----------------------
+# Step 3: Initialize the LLM and RetrievalQA chain
+# -----------------------
+llm = OpenAI(temperature=0)  # GPT-3.5 by default
+qa_chain = RetrievalQA.from_chain_type(
+    llm=llm,
+    retriever=retriever,
+    chain_type="stuff"  # simple concatenation of retrieved docs
+)
+
+
+# -----------------------
+# Step 4: Ask a query
+# -----------------------
+query = "Where is the Eiffel Tower located?"
+answer = qa_chain.run(query)
+print("Query:", query)
+print("Answer:", answer)
+
+

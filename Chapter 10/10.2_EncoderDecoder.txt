@@ -1,0 +1,41 @@
+class EncoderLayer(nn.Module):
+# d_model: Dimension of input tokens.
+# n_heads: Number of attention heads.
+# d_ff: Dimension of the feed-forward network’s hidden layer.
+# dropout: Dropout probability for regularization.
+
+
+#Key Components:
+#self.attn: Multi-head self-attention layer.
+# self.ffn: Position-wise feed-forward network.
+# self.norm1, self.norm2: Layer normalization to stabilize training.
+# self.drop: Dropout for regularization after each sublayer.
+    def __init__(self, d_model, n_heads, d_ff, dropout=0.1):
+        super().__init__()
+        self.attn = MultiHeadSelfAttention(d_model, n_heads)
+        self.ffn  = FeedForward(d_model, d_ff)
+        self.norm1, self.norm2 = nn.LayerNorm(d_model), nn.LayerNorm(d_model)
+        self.drop = nn.Dropout(dropout)
+
+    def forward(self, x, mask=None):
+        x = x + self.drop(self.attn(self.norm1(x), mask=mask))
+        x = x + self.drop(self.ffn(self.norm2(x)))
+        return x
+
+# Decoder Layer inputs are same as encoder
+class DecoderLayer(nn.Module):
+    def __init__(self, d_model, n_heads, d_ff, dropout=0.1):
+        super().__init__()
+        self.self_attn   = MultiHeadSelfAttention(d_model, n_heads, causal=True)
+        self.cross_attn  = MultiHeadSelfAttention(d_model, n_heads, causal=False)
+        self.ffn         = FeedForward(d_model, d_ff)
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.norm3 = nn.LayerNorm(d_model)
+        self.drop  = nn.Dropout(dropout)
+
+    def forward(self, x, enc_out, src_mask=None, tgt_mask=None):
+        x = x + self.drop(self.self_attn(self.norm1(x), mask=tgt_mask))
+        x = x + self.drop(self.cross_attn(self.norm2(x), kv=enc_out, mask=src_mask))
+        x = x + self.drop(self.ffn(self.norm3(x)))
+        return x

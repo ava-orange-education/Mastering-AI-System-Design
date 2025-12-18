@@ -1,0 +1,12 @@
+#Dataset and Setup
+
+!pip install datasets transformers sacrebleu  # ensure required packages are installed
+from datasets import load_dataset
+from transformers import BartTokenizer, BartForConditionalGeneration
+
+# Load CNN/DailyMail dataset (3.0.0 is a specific version)
+dataset = load_dataset("cnn_dailymail", "3.0.0")
+print(dataset.keys())  # should show 'train', 'validation', 'test' splits
+
+tokenizer = BartTokenizer.from_pretrained("facebook/bart-large-cnn")
+model = BartForConditionalGeneration.from_pretrained("facebook/bart-large-cnn")

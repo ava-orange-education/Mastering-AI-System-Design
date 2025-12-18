@@ -1,0 +1,42 @@
+#Serving and Deployment of Model
+
+!pip install fastapi uvicorn transformers torch
+from fastapi import FastAPI
+from pydantic import BaseModel
+from transformers import BartTokenizer, BartForConditionalGeneration
+
+# Load model and tokenizer (can be your fine-tuned checkpoint instead)
+tokenizer = BartTokenizer.from_pretrained("facebook/bart-large-cnn")
+model = BartForConditionalGeneration.from_pretrained("facebook/bart-large-cnn")
+
+# Define request schema
+class Article(BaseModel):
+    text: str
+    max_length: int = 100
+    min_length: int = 30
+
+# Create API
+app = FastAPI(title="Summarization API")
+
+@app.post("/summarize")
+def summarize(article: Article):
+    inputs = tokenizer(article.text, return_tensors="pt", truncation=True, max_length=512)
+    summary_ids = model.generate(
+        inputs["input_ids"], 
+        attention_mask=inputs["attention_mask"],
+        max_length=article.max_length,
+        min_length=article.min_length,
+        num_beams=4,
+        length_penalty=2.0,
+        early_stopping=True
+    )
+    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+    return {"summary": summary}
+
+Run the server:
+uvicorn app:app --reload --port 8000
+
+Now, you can send a POST request:
+curl -X POST "http://127.0.0.1:8000/summarize" \
+     -H "Content-Type: application/json" \
+     -d '{"text": "The government passed a new law today aiming to improve education across the country."}'

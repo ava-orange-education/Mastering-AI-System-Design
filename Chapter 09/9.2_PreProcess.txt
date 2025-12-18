@@ -1,0 +1,29 @@
+# Data Pre-processing
+max_input_length = 512   # truncate article to 512 tokens
+max_output_length = 128  # truncate summary to 128 tokens
+
+def preprocess_function(batch):
+    inputs = batch["article"]
+    targets = batch["highlights"]
+    
+    # Tokenize inputs
+    model_inputs = tokenizer(
+        inputs, 
+        max_length=max_input_length, 
+        truncation=True, 
+        padding="max_length"
+    )
+    
+    # Tokenize targets
+    labels = tokenizer(
+        text_target=targets, 
+        max_length=max_output_length, 
+        truncation=True, 
+        padding="max_length"
+    )
+    model_inputs["labels"] = labels["input_ids"]
+    return model_inputs
+
+# Use the dataset.map to apply preprocessing in batches
+train_dataset = dataset["train"].map(preprocess_function, batched=True, remove_columns=["article", "highlights", "id"])
+val_dataset = dataset["validation"].map(preprocess_function, batched=True, remove_columns=["article", "highlights", "id"])

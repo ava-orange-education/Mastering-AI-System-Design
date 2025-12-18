@@ -1,0 +1,18 @@
+#Model Parallization
+# Define a Transformer model that uses model parallelism across two GPUs
+class ModelParallelTransformer(nn.Module):
+    def __init__(self):
+        super().__init__()
+        
+        # Instantiate the first transformer block and place it on GPU 0
+        self.layer1 = TransformerBlock().to('cuda:0')
+        # Instantiate the second transformer block and place it on GPU 1
+        self.layer2 = TransformerBlock().to('cuda:1')
+
+    def forward(self, x):
+        # Move the input tensor to GPU 0 and pass it through the first layer
+        x = self.layer1(x.to('cuda:0'))
+        # Move the output from GPU 0 to GPU 1 and pass it through the second layer
+        x = self.layer2(x.to('cuda:1'))
+ # The output is now on GPU 1
+        return x

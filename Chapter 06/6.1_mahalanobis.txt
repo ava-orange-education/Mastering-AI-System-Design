@@ -1,0 +1,51 @@
+# Mahalanobis Distance
+import numpy as np
+def mahalanobis_distance(x, data):
+    """
+    Compute the Mahalanobis distance between each row of x and the data.
+   
+    Parameters:
+    x (ndarray): An array of data points (observations x variables).
+    data (ndarray): The data set to compute the mean and covariance matrix.
+   
+    Returns:
+    distances (ndarray): Mahalanobis distances of each observation in x.
+    """
+    # Calculate the mean vector
+    mu = np.mean(data, axis=0)
+    print(mu)
+   
+    # Calculate the covariance matrix
+    cov = np.cov(data, rowvar=False)
+    print(cov)
+    # Compute the inverse covariance matrix
+    cov_inv = np.linalg.inv(cov)
+   
+    # Center the data
+    x_minus_mu = x - mu
+   
+    # Compute the Mahalanobis distance
+    left_term = np.dot(x_minus_mu, cov_inv)
+    distances = np.sqrt(np.sum(left_term * x_minus_mu, axis=1))
+   
+    return distances
+
+
+# Example usage:
+if __name__ == "__main__":
+    # Sample data (10 observations of 3 variables)
+    data = np.array([
+        [2.5, 2.4, 1.2],
+        [0.5, 0.7, 0.8],
+        [2.2, 2.9, 1.1],
+        [1.9, 2.2, 1.3],
+        [3.1, 3.0, 1.4]
+    ])
+       # Points to compute the distance from
+    x = data  # In this case, computing the distance of each point to the dataset
+       # Calculate Mahalanobis distances
+    distances = mahalanobis_distance(x, data)
+       # Print the results
+    for idx, distance in enumerate(distances):
+        print(f"Data point {idx}: Mahalanobis distance = {distance:.4f}")
+

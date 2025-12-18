@@ -1,0 +1,12 @@
+# Testing the summarization model
+
+article_text = dataset["test"][0]["article"][:500]  # first 500 chars of a test article for demo
+print("Article snippet:\n", article_text)
+
+# Run generation
+inputs = tokenizer(article_text, return_tensors="pt", truncation=True, max_length=512)
+summary_ids = model.generate(inputs["input_ids"], attention_mask=inputs["attention_mask"], 
+                             max_length=100, num_beams=4, length_penalty=2.0, early_stopping=True)
+generated_summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+print("\nGenerated Summary:\n", generated_summary)
+

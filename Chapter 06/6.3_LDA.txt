@@ -1,0 +1,33 @@
+# Topic Modelling using LDA
+!pip install pyLDAvis
+import gensim
+import nltk
+from gensim import corpora
+from gensim.models import LdaModel
+import pyLDAvis.gensim_models as gensimvis
+import pyLDAvis
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+# Sample documents
+documents = [
+    "Cats are small and cute animals.",
+    "Dogs are loyal and friendly pets.",
+    "Dogs are common household pets.",
+    "Cats are smart animals",
+    "birds fly beautifully"
+]
+# Preprocess the documents
+texts = [[word for word in document.lower().split()] for document in documents]
+stop_words = set(stopwords.words('english'))
+texts = [[word for word in document.lower().split() if word not in stop_words] for document in documents]
+# Create a dictionary and corpus
+dictionary = corpora.Dictionary(texts)
+corpus = [dictionary.doc2bow(text) for text in texts]
+# Train LDA model
+lda_model = LdaModel(corpus=corpus, id2word=dictionary, num_topics=3, random_state=42)
+# Print the topics
+for idx, topic in lda_model.print_topics(-1):
+    print(f"Topic {idx}: {topic}")
+# Visualize the topics
+lda_display = gensimvis.prepare(lda_model, corpus, dictionary, sort_topics=False)
+pyLDAvis.display(lda_display)

@@ -1,0 +1,15 @@
+Finding the Distribution Curves
+
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
+# Sample DataFrame
+# Create a violin plot
+sns.kdeplot(data=data['Annual Income'], fill=True, color='blue', alpha=0.5)
+# Add titles and labels
+plt.title('Distribution of Annual Income')
+plt.xlabel('Annual Income')
+plt.ylabel('Density')
+
+# Show plot
+plt.show()

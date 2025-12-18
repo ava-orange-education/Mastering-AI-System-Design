@@ -1,0 +1,25 @@
+# Fine-tuning the model
+
+from transformers import TrainingArguments, Trainer
+
+training_args = TrainingArguments(
+    output_dir="bart-summarizer",
+    num_train_epochs=1,
+    per_device_train_batch_size=2,
+    per_device_eval_batch_size=2,
+    gradient_accumulation_steps=4,  # to simulate larger batch
+    learning_rate=3e-5,
+    logging_steps=100,
+    evaluation_strategy="epoch",
+    save_strategy="epoch",
+    save_total_limit=2,
+    predict_with_generate=True,  # let Trainer handle generation for eval
+)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=val_dataset,
+)
+trainer.train()

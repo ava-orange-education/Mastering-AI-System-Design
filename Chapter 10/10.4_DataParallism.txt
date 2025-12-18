@@ -1,0 +1,11 @@
+#Data Parallelism
+import torch
+import torch.nn as nn
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+def setup(rank, world_size):
+    # Initializes the default process group for distributed training.
+    # 'nccl' is the backend optimized for multi-GPU communication on NVIDIA hardware.
+    dist.init_process_group("nccl", rank=rank, world_size=world_size)
+   # Sets the current process to use the appropriate GPU device (based on its rank).
+    torch.cuda.set_device(rank)

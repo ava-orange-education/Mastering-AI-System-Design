@@ -1,0 +1,35 @@
+class MultiHeadSelfAttention(nn.Module):
+    def __init__(self, d_model: int, n_heads: int, causal: bool = False):
+tokens (used in decoders).
+#d_model: total dimension of input embeddings (e.g., 512 or 768).
+#n_heads: number of attention heads to split the model into.
+#causal: if True, applies a causal mask to prevent attending to future 
+        super().__init__()
+        assert d_model % n_heads == 0
+        self.head_dim = d_model // n_heads
+        self.n_heads = n_heads
+        self.causal = causal
+        self.qkv = nn.Linear(d_model, 3 * d_model)    # Projects input into queries (Q), keys (K), and values (V) in a single linear operation.
+        self.out = nn.Linear(d_model, d_model)
+
+    def forward(self, x, kv=None, mask=None):
+        #If kv is provided, it's used for cross-attention (e.g., decoder attends to encoder output). Otherwise, it's self-attention.
+        k_in = v_in = kv if kv is not None else x
+        B, T, _ = x.size()
+        q, k, v = self.qkv(x), self.qkv(k_in), self.qkv(v_in)
+        q, k, v = [t.view(B, -1, self.n_heads, self.head_dim).transpose(1, 2)
+                   for t in (q, k, v)]     # Computes query, key, and value vectors for all tokens.
+  # Computes scaled dot-product attention scores.
+        scores = (q @ k.transpose(-2, -1)) / self.head_dim**0.5 
+
+        if self.causal:
+            # Applies causal mask to prevent attention to future tokens (decoder mode).
+            causal_mask = torch.tril(torch.ones(T, T, device=x.device, dtype=torch.bool))
+            scores = scores.masked_fill(~causal_mask, float('-inf'))
+        if mask is not None:                    # optional padding mask
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+        attn = torch.softmax(scores, dim=-1)
+        #Applies attention weights to value vectors.
+        context = attn @ v                              
+        context = context.transpose(1, 2).contiguous().view(B, T, -1)
+        return self.out(context)

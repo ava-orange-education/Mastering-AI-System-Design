@@ -1,0 +1,17 @@
+#Early Fusion
+
+import torch
+import torch.nn as nn
+
+class EarlyFusionModel(nn.Module):
+    def __init__(self, text_dim, image_dim, audio_dim, hidden_dim, output_dim):
+        super(EarlyFusionModel, self).__init__()
+        self.fusion = nn.Linear(text_dim + image_dim + audio_dim, hidden_dim)
+        self.output_layer = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, text_emb, image_emb, audio_emb):
+        # Concatenate along the feature dimension
+        fused = torch.cat((text_emb, image_emb, audio_emb), dim=1)
+        hidden = torch.relu(self.fusion(fused))
+        output = self.output_layer(hidden)
+        return output

@@ -1,0 +1,16 @@
+#Topic Modelling using BERT Topic
+
+from bertopic import BERTopic
+# Dimension reduction
+from umap import UMAP
+umap_model = UMAP(n_neighbors=10,
+                  n_components=5,
+                  min_dist=0.1,
+                  metric='cosine',
+                  random_state=100)
+# Initiate BERTopic
+topic_model = BERTopic(umap_model=umap_model, language="english", calculate_probabilities=True)
+# Run BERTopic model
+topics, probabilities = topic_model.fit_transform(incidents['clean_desc'])
+# Get the list of topics
+topic_model.get_topic_info()

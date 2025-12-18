@@ -1,0 +1,28 @@
+$ Evaluation of the model 
+# Define compute_metrics for ROUGE
+from datasets import load_metric
+rouge_metric = load_metric("rouge")
+
+def compute_metrics(eval_pred):
+    preds, labels = eval_pred
+    # Decode predictions and references
+    decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
+    # Replace -100 in the labels as they are ignored (convert to pad token id before decode)
+    labels = labels.astype(int)
+    labels[labels == -100] = tokenizer.pad_token_id
+    decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
+    # Compute ROUGE
+    result = rouge_metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
+    # Take average ROUGE-L
+    result = {key: value.mid.fmeasure * 100 for key, value in result.items()}
+    return result
+
+# Re-instantiate Trainer with compute_metrics
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=val_dataset,
+    compute_metrics=compute_metrics
+)
+

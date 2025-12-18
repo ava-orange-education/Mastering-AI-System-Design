@@ -1,0 +1,31 @@
+# Serving, Deployment and Monitoring
+
+!pip install prometheus-client
+from prometheus_client import Counter, Histogram, generate_latest
+from fastapi.responses import PlainTextResponse
+import time
+# Metrics
+REQUEST_COUNT = Counter("request_count", "Number of requests")
+REQUEST_LATENCY = Histogram("request_latency_seconds", "Request latency")
+@app.post("/summarize")
+def summarize(article: Article):
+    start_time = time.time()
+    REQUEST_COUNT.inc()
+    inputs = tokenizer(article.text, return_tensors="pt", truncation=True, max_length=512)
+    summary_ids = model.generate(
+        inputs["input_ids"],
+        attention_mask=inputs["attention_mask"],
+        max_length=article.max_length,
+        min_length=article.min_length,
+        num_beams=4,
+        length_penalty=2.0,
+        early_stopping=True
+    )
+    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+    REQUEST_LATENCY.observe(time.time() - start_time)
+    return {"summary": summary}
+
+# Endpoint to expose metrics
+@app.get("/metrics")
+def metrics():
+    return PlainTextResponse(generate_latest().decode("utf-8"))

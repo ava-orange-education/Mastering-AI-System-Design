@@ -1,0 +1,18 @@
+import torch
+import torch.nn as nn
+
+class LateFusionModel(nn.Module):
+    def __init__(self, input_dims, hidden_dim, output_dim):
+        super(LateFusionModel, self).__init__()
+        self.text_encoder = nn.Linear(input_dims['text'], hidden_dim)
+        self.image_encoder = nn.Linear(input_dims['image'], hidden_dim)
+        self.audio_encoder = nn.Linear(input_dims['audio'], hidden_dim)
+        self.output_layer = nn.Linear(hidden_dim * 3, output_dim)
+
+    def forward(self, text_emb, image_emb, audio_emb):
+        text_feat = torch.relu(self.text_encoder(text_emb))
+        image_feat = torch.relu(self.image_encoder(image_emb))
+        audio_feat = torch.relu(self.audio_encoder(audio_emb))
+        fused = torch.cat((text_feat, image_feat, audio_feat), dim=1)
+        output = self.output_layer(fused)
+        return output
